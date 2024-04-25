@@ -1,4 +1,4 @@
-list.of.packages <- c("data.table","ggplot2","scales","plotly","htmlwidgets","showtext")
+list.of.packages <- c("data.table","ggplot2","scales","plotly","htmlwidgets","showtext","listviewer")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 lapply(list.of.packages, require, character.only=T)
@@ -89,6 +89,7 @@ line = ggplot(funding_data,aes(x=Year,y=Value,group=Type,color=Type)) +
   geom_point() + # Points on line
   scale_color_manual(values=c(red, green)) +
   scale_y_continuous(expand = c(0, 0)) +
+  expand_limits(y=c(0, 0)) +
   scale_x_continuous(breaks=c(2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022)) +
   expand_limits(y=c(0, max(funding_data$Value*1.1))) +
   di_style +
@@ -108,3 +109,65 @@ line_html = ggplotly(line, tooltip = c("Year", "Value")) %>% plotly::layout(
       orientation='h')
   )
 saveWidget(line_html, file = "output/gb_funding_line.html")
+
+
+test_dropdown_data = data.frame(
+  Year=c(2001, 2002, 2003, 2004, 2005),
+  `United States`=runif(5, min=20, max=50),
+  `United Kingdom`=runif(5, min=20, max=50),
+  check.names=F
+)
+
+create_buttons <- function(df, y_axis_var_names) {
+  lapply(
+    y_axis_var_names,
+    FUN = function(var_name, df) {
+      button <- list(
+        method = 'update',
+        args = list(list(
+          y = list(df[, var_name]),
+          x = list(df[, 'Year'])
+          )),
+        label = sprintf('Donor: %s', var_name)
+      )
+    },
+    df
+  )
+}
+
+y_axis_var_names <- c('United States', 'United Kingdom')
+
+# Line
+line_dropdown = ggplot(test_dropdown_data,aes(x=Year,y=`United States`)) +
+  geom_line(linewidth=1.3, color=red) +
+  geom_point(color=red) + # Points on line
+  scale_y_continuous(expand = c(0, 0)) +
+  expand_limits(y=c(0, max(test_dropdown_data[,y_axis_var_names])) * 1.1) +
+  di_style +
+  labs(
+    y="in Billions (USD)",
+    x="",
+    color=""
+  )
+
+
+line_dropdown_html = ggplotly(line_dropdown, tooltip = c("Year", "Value")) %>% plotly::layout(
+  font=roboto_font,
+  autosize=T,
+  yaxis = list(
+    autodomain=T,
+    autorange=T,
+    tickmode="auto"
+  ),
+  updatemenus = list(
+    list(
+      buttons = create_buttons(test_dropdown_data, y_axis_var_names),
+      x=0,
+      xanchor="left",
+      y=1.1,
+      yanchor="top"
+    )
+  )
+)
+# plotly_json(line_dropdown_html) 
+saveWidget(line_dropdown_html, file = "output/gb_funding_line_dropdown.html")
