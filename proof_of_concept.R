@@ -73,7 +73,7 @@ bar = ggplot(signatory_data,aes(x=`Signatory group`,y=`Number of members`, fill=
     fill=""
   )
 bar_html = ggplotly(bar, tooltip = c("Signatory group", "Number of members")) %>% plotly::layout(font=roboto_font, autosize=T)
-saveWidget(bar_html, file = "output/gb_signatory_bar.html")
+saveWidget(bar_html, file = "output/gb_signatory_bar.html", selfcontained=F)
 
 funding_data = fread("input/funding.csv")
 funding_data$group = factor(funding_data$group, levels = unique(funding_data$group))
@@ -108,7 +108,7 @@ line_html = ggplotly(line, tooltip = c("Year", "Value")) %>% plotly::layout(
       yanchor='bottom',
       orientation='h')
   )
-saveWidget(line_html, file = "output/gb_funding_line.html")
+saveWidget(line_html, file = "output/gb_funding_line.html", selfcontained=F)
 
 
 test_dropdown_data = data.frame(
@@ -170,4 +170,4 @@ line_dropdown_html = ggplotly(line_dropdown, tooltip = c("Year", "Value")) %>% p
   )
 )
 # plotly_json(line_dropdown_html) 
-saveWidget(line_dropdown_html, file = "output/gb_funding_line_dropdown.html")
+saveWidget(line_dropdown_html, file = "output/gb_funding_line_dropdown.html", selfcontained=F)
