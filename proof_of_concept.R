@@ -112,37 +112,36 @@ saveWidget(line_html, file = "output/gb_funding_line.html", selfcontained=F)
 
 
 test_dropdown_data = data.frame(
-  Year=c(2001, 2002, 2003, 2004, 2005),
-  `United States`=runif(5, min=20, max=50),
-  `United Kingdom`=runif(5, min=20, max=50),
+  Year=rep(c(2001:2005), 2),
+  Value=runif(10, min=20, max=50),
+  Donor=c(rep("United States", 5), rep("United Kingdom", 5)),
   check.names=F
 )
 
-create_buttons <- function(df, y_axis_var_names) {
+create_buttons <- function(df, filter_variable) {
+  unique_values = unique(df[,filter_variable])
   lapply(
-    y_axis_var_names,
-    FUN = function(var_name, df) {
+    unique_values,
+    FUN = function(unique_value, df) {
+      df_sub = df[which(df[,filter_variable]==unique_value),]
       button <- list(
         method = 'update',
         args = list(list(
-          y = list(df[, var_name]),
-          x = list(df[, 'Year'])
+          y = list(df_sub$Value),
+          x = list(df_sub$Year)
           )),
-        label = sprintf('Donor: %s', var_name)
+        label = paste0(filter_variable, ': ', unique_value)
       )
     },
     df
   )
 }
 
-y_axis_var_names <- c('United States', 'United Kingdom')
-
 # Line
-line_dropdown = ggplot(test_dropdown_data,aes(x=Year,y=`United States`)) +
+unique_donors = unique(test_dropdown_data$Donor)
+line_dropdown = ggplot(subset(test_dropdown_data, Donor==unique_donors[1]),aes(x=Year,y=Value)) +
   geom_line(linewidth=1.3, color=red) +
   geom_point(color=red) + # Points on line
-  scale_y_continuous(expand = c(0, 0)) +
-  expand_limits(y=c(0, max(test_dropdown_data[,y_axis_var_names])) * 1.1) +
   di_style +
   labs(
     y="in Billions (USD)",
@@ -161,11 +160,11 @@ line_dropdown_html = ggplotly(line_dropdown, tooltip = c("Year", "Value")) %>% p
   ),
   updatemenus = list(
     list(
-      buttons = create_buttons(test_dropdown_data, y_axis_var_names),
+      buttons = create_buttons(test_dropdown_data, 'Donor'),
       x=0,
       xanchor="left",
-      y=1.1,
-      yanchor="top"
+      y=0.95,
+      yanchor="bottom"
     )
   )
 )
